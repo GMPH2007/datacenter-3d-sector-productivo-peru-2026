@@ -1,0 +1,30 @@
+# Windows
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Backups and temporary files
+*.bak*
+*.tmp
+_tmp*
+_temp*
+test_*
+_test*
+_snap*
+_find*
+_fix*
+_read*
+_inspect*
+_patch*
+_get*
+_check*
+_replace*
+_rotate*
+_view*
+_validate*
+__pycache__/
+*.pyc
+
+# IDEs
+.vscode/
+.idea/
