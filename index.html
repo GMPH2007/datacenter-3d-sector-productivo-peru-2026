@@ -2978,7 +2978,7 @@
             scene = new THREE.Scene();
             // CIELO Y ATMÓSFERA URBANA DIURNA DE PAITA (CERO FONDO NEGRO, ENTORNO DE CIUDAD COMPLETO)
             scene.background = new THREE.Color(0x8ecae6); // Cielo azul diurno despejado
-            scene.fog = new THREE.FogExp2(0xa2d2ff, 0.0030); // Bruma atmosférica suave hacia el horizonte
+            scene.fog = new THREE.Fog(0xa2d2ff, 75, 380); // Bruma atmosférica suave hacia el horizonte
 
             // REGLA 1: Cámara de Alta Definición con alcance extendido a 380m para abarcar la ciudad exterior
             camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 380);
@@ -3199,7 +3199,7 @@
 
         function setupLighting() {
             // Iluminación comercial blanca normal
-            ambientLight = new THREE.AmbientLight(0xdbeafe, 0.85);
+            ambientLight = new THREE.AmbientLight(0x64748b, 0.45);
             scene.add(ambientLight);
 
             dirLight = new THREE.DirectionalLight(0xffffff, 0.75);
@@ -3878,9 +3878,9 @@
         function buildCityAndExterior() {
             const cityGroup = new THREE.Group();
 
-            // 1. LUZ SOLAR NATURAL DE EXTERIOR (SOL COSTEÑO DE PAITA)
-            const outdoorSun = new THREE.DirectionalLight(0xfffbeb, 0.95);
-            outdoorSun.position.set(50, 70, 45);
+            // 1. ILUMINACIÓN SOLAR NATURAL DE EXTERIOR (SOL COSTEÑO DE PAITA)
+            const outdoorSun = new THREE.DirectionalLight(0xfffbeb, 0.75);
+            outdoorSun.position.set(50, 75, 45);
             outdoorSun.castShadow = true;
             outdoorSun.shadow.mapSize.width = 2048;
             outdoorSun.shadow.mapSize.height = 2048;
@@ -3893,11 +3893,11 @@
             outdoorSun.shadow.bias = 0.0001;
             scene.add(outdoorSun);
 
-            const outdoorHemi = new THREE.HemisphereLight(0xb1e1ff, 0x475569, 0.65);
+            const outdoorHemi = new THREE.HemisphereLight(0x93c5fd, 0x334155, 0.35);
             scene.add(outdoorHemi);
 
             // 2. SUELO GENERAL DE LA CIUDAD (320m x 320m)
-            const terrainGeo = new THREE.PlaneGeometry(320, 320);
+            const terrainGeo = new THREE.PlaneGeometry(360, 360);
             terrainGeo.rotateX(-Math.PI / 2);
             const terrainMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.95 });
             const terrain = new THREE.Mesh(terrainGeo, terrainMat);
@@ -3905,189 +3905,387 @@
             terrain.receiveShadow = true;
             cityGroup.add(terrain);
 
-            // 3. FACHADA EXTERIOR COMPLETA DEL EDIFICIO DATACENTER (Visible desde afuera a 360°)
-            // Paredes exteriores con revestimiento arquitectónico grafito y perfiles metálicos
-            const extFacadeMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.65, metalness: 0.35 });
+            // 3. FACHADA ARQUITECTÓNICA EXTERIOR COMPLETA DEL DATA CENTER (TIER III ENTERPRISE)
+            const extFacadeMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.55, metalness: 0.35 });
+            const extPanelGrooveMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.8 });
             const extTrimMat = new THREE.MeshStandardMaterial({ color: 0x0284c7, metalness: 0.8, roughness: 0.2 });
 
             // Fachada Izquierda Exterior (X = -10.0m)
-            const extLeft = new THREE.Mesh(new THREE.BoxGeometry(0.25, 5.4, 31.2), extFacadeMat);
-            extLeft.position.set(-10.12, 2.7, -2.5);
+            const extLeft = new THREE.Mesh(new THREE.BoxGeometry(0.3, 5.5, 31.4), extFacadeMat);
+            extLeft.position.set(-10.15, 2.75, -2.5);
             cityGroup.add(extLeft);
 
             // Fachada Derecha Exterior (X = +10.0m)
-            const extRight = new THREE.Mesh(new THREE.BoxGeometry(0.25, 5.4, 31.2), extFacadeMat);
-            extRight.position.set(10.12, 2.7, -2.5);
+            const extRight = new THREE.Mesh(new THREE.BoxGeometry(0.3, 5.5, 31.4), extFacadeMat);
+            extRight.position.set(10.15, 2.75, -2.5);
             cityGroup.add(extRight);
 
             // Fachada Posterior Exterior (Z = -18.0m)
-            const extBack = new THREE.Mesh(new THREE.BoxGeometry(20.4, 5.4, 0.25), extFacadeMat);
-            extBack.position.set(0, 2.7, -18.12);
+            const extBack = new THREE.Mesh(new THREE.BoxGeometry(20.6, 5.5, 0.3), extFacadeMat);
+            extBack.position.set(0, 2.75, -18.15);
             cityGroup.add(extBack);
 
-            // Parapeto Perimetral del Techo y Molduras de Acabado
-            [-10.12, 10.12].forEach(px => {
-                const parapet = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.45, 31.4), extTrimMat);
-                parapet.position.set(px, 5.42, -2.5);
+            // Fachada Frontal Exterior con Muros Laterales y Cerramiento (Z = 13.0m)
+            [-7.2, 7.2].forEach(wx => {
+                const fWing = new THREE.Mesh(new THREE.BoxGeometry(6.0, 5.5, 0.3), extFacadeMat);
+                fWing.position.set(wx, 2.75, 13.15);
+                cityGroup.add(fWing);
+
+                // Ranuras horizontales de modulación arquitectónica tipo Alucobond
+                [1.2, 2.4, 3.6, 4.8].forEach(gy => {
+                    const groove = new THREE.Mesh(new THREE.BoxGeometry(6.02, 0.04, 0.32), extPanelGrooveMat);
+                    groove.position.set(wx, gy, 13.15);
+                    cityGroup.add(groove);
+                });
+            });
+
+            // Viga Dintel Superior de Fachada sobre el Ingreso
+            const frontLintel = new THREE.Mesh(new THREE.BoxGeometry(8.6, 1.4, 0.3), extFacadeMat);
+            frontLintel.position.set(0, 4.8, 13.15);
+            cityGroup.add(frontLintel);
+
+            // PORTAL ARQUITECTÓNICO DE ACCESO PRINCIPAL EN AZUL METÁLICO (EMBLASÓN INSTITUCIONAL)
+            const portalGroup = new THREE.Group();
+            portalGroup.position.set(0, 0, 13.35);
+
+            // Columnas y Dintel del Pórtico de Acceso
+            const portalArch = new THREE.Mesh(new THREE.BoxGeometry(8.4, 0.6, 0.7), extTrimMat);
+            portalArch.position.set(0, 5.2, 0);
+            portalGroup.add(portalArch);
+
+            [-4.1, 4.1].forEach(px => {
+                const pCol = new THREE.Mesh(new THREE.BoxGeometry(0.6, 5.2, 0.7), extTrimMat);
+                pCol.position.set(px, 2.6, 0);
+                portalGroup.add(pCol);
+            });
+
+            // Letrero Luminoso Corporativo 3D en el Dintel del Pórtico
+            const facadeBadge = new THREE.Mesh(new THREE.BoxGeometry(7.8, 0.95, 0.15), new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.3 }));
+            facadeBadge.position.set(0, 4.5, 0.32);
+            portalGroup.add(facadeBadge);
+
+            const facadeText = createTextSprite("I.E.S.T.P. HERMANOS CÁRCAMO - PAITA\nCENTRO DE DATOS TIER III · CAMPUS PRODUCTIVO", 0.0034, '#00e5ff');
+            facadeText.position.set(0, 4.5, 0.42);
+            portalGroup.add(facadeText);
+
+            // MURO CORTINA ACRISTALADO DEL LOBBY (PANEL DE VIDRIO TEMPLADO PANORÁMICO)
+            const lobbyGlassGeo = new THREE.BoxGeometry(7.6, 4.0, 0.12);
+            const lobbyGlassMat = new THREE.MeshStandardMaterial({ color: 0x0284c7, transparent: true, opacity: 0.45, roughness: 0.1, metalness: 0.85 });
+            const lobbyGlass = new THREE.Mesh(lobbyGlassGeo, lobbyGlassMat);
+            lobbyGlass.position.set(0, 2.0, -0.15);
+            portalGroup.add(lobbyGlass);
+
+            // Perfiles y montantes de aluminio anodizado negro
+            [-2.5, 0, 2.5].forEach(mx => {
+                const mullion = new THREE.Mesh(new THREE.BoxGeometry(0.08, 4.0, 0.18), new THREE.MeshStandardMaterial({ color: 0x090d16, metalness: 0.9 }));
+                mullion.position.set(mx, 2.0, -0.12);
+                portalGroup.add(mullion);
+            });
+            [2.0, 3.9].forEach(ty => {
+                const transom = new THREE.Mesh(new THREE.BoxGeometry(7.6, 0.08, 0.18), new THREE.MeshStandardMaterial({ color: 0x090d16, metalness: 0.9 }));
+                transom.position.set(0, ty, -0.12);
+                portalGroup.add(transom);
+            });
+
+            // Puertas Automáticas Corredizas de Cristal con Jaladores Inox
+            [-0.75, 0.75].forEach(dx => {
+                const dFrame = new THREE.Mesh(new THREE.BoxGeometry(1.4, 2.5, 0.06), new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.4 }));
+                dFrame.position.set(dx, 1.25, -0.10);
+                portalGroup.add(dFrame);
+
+                const dGlass = new THREE.Mesh(new THREE.BoxGeometry(1.24, 2.34, 0.04), new THREE.MeshStandardMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.35, roughness: 0.1 }));
+                dGlass.position.set(dx, 1.25, -0.10);
+                portalGroup.add(dGlass);
+
+                // Jaladores verticales de acero inoxidable
+                const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 1.3, 8), new THREE.MeshStandardMaterial({ color: 0xe2e8f0, metalness: 0.9 }));
+                handle.position.set(dx > 0 ? dx - 0.55 : dx + 0.55, 1.2, -0.05);
+                portalGroup.add(handle);
+            });
+
+            // MARQUESINA VOLADIZA DE VIDRIO Y ACERO (CANOPY CON TIRANTES TENSORES)
+            const canopyRoof = new THREE.Mesh(new THREE.BoxGeometry(6.4, 0.08, 2.4), new THREE.MeshStandardMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.55, roughness: 0.1, metalness: 0.8 }));
+            canopyRoof.position.set(0, 3.8, 1.2);
+            portalGroup.add(canopyRoof);
+
+            const canopyFrame = new THREE.Mesh(new THREE.BoxGeometry(6.5, 0.12, 2.5), new THREE.MeshStandardMaterial({ color: 0x0284c7, metalness: 0.85, roughness: 0.2 }));
+            canopyFrame.position.set(0, 3.76, 1.2);
+            portalGroup.add(canopyFrame);
+
+            // Tirantes tensores de acero diagonal
+            [-2.9, 2.9].forEach(tx => {
+                const rod = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 2.2, 8), new THREE.MeshStandardMaterial({ color: 0xe2e8f0, metalness: 0.9 }));
+                rod.position.set(tx, 4.4, 1.1);
+                rod.rotation.x = Math.PI / 4;
+                portalGroup.add(rod);
+
+                // Focos empotrados tipo downlight LED cálido
+                const spotLight = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.04, 12), new THREE.MeshBasicMaterial({ color: 0xfef08a }));
+                spotLight.position.set(tx * 0.6, 3.74, 1.2);
+                portalGroup.add(spotLight);
+            });
+
+            cityGroup.add(portalGroup);
+
+            // Parapeto Perimetral del Techo
+            [-10.15, 10.15].forEach(px => {
+                const parapet = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.5, 31.6), extTrimMat);
+                parapet.position.set(px, 5.5, -2.5);
                 cityGroup.add(parapet);
             });
-            [-18.12, 13.0].forEach(pz => {
-                const parapetZ = new THREE.Mesh(new THREE.BoxGeometry(20.6, 0.45, 0.35), extTrimMat);
-                parapetZ.position.set(0, 5.42, pz);
+            [-18.15, 13.15].forEach(pz => {
+                const parapetZ = new THREE.Mesh(new THREE.BoxGeometry(20.8, 0.5, 0.35), extTrimMat);
+                parapetZ.position.set(0, 5.5, pz);
                 cityGroup.add(parapetZ);
             });
 
-            // Enfriadores Industriales de Techo (Rooftop Chillers / HVAC Condensers)
-            [-4.5, 4.5].forEach(cx => {
-                const chillerGroup = new THREE.Group();
-                chillerGroup.position.set(cx, 5.65, -3.0);
+            // Celosía Arquitectónica de Ocultamiento de Equipos HVAC en Cubierta (Screen Wall Louvers)
+            const louverMat = new THREE.MeshStandardMaterial({ color: 0x475569, metalness: 0.6, roughness: 0.4 });
+            const louverScreen = new THREE.Mesh(new THREE.BoxGeometry(13.0, 1.7, 9.0), new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.8, wireframe: false }));
+            louverScreen.position.set(0, 6.25, -3.0);
+            cityGroup.add(louverScreen);
 
-                const cBox = new THREE.Mesh(new THREE.BoxGeometry(3.2, 1.35, 4.2), new THREE.MeshStandardMaterial({ color: 0x475569, metalness: 0.6, roughness: 0.4 }));
+            // Lamas horizontales de celosía
+            for (let ly = 5.5; ly <= 7.0; ly += 0.28) {
+                const slat = new THREE.Mesh(new THREE.BoxGeometry(13.2, 0.06, 9.2), extTrimMat);
+                slat.position.set(0, ly, -3.0);
+                cityGroup.add(slat);
+            }
+
+            // Enfriadores Industriales de Techo (Rooftop Chillers) dentro de la celosía
+            [-4.2, 4.2].forEach(cx => {
+                const chillerGroup = new THREE.Group();
+                chillerGroup.position.set(cx, 5.75, -3.0);
+
+                const cBox = new THREE.Mesh(new THREE.BoxGeometry(3.0, 1.4, 4.0), new THREE.MeshStandardMaterial({ color: 0x64748b, metalness: 0.6, roughness: 0.4 }));
                 chillerGroup.add(cBox);
 
-                // Rejillas de ventiladores superiores
                 [-1.0, 1.0].forEach(fz => {
-                    const fanGrille = new THREE.Mesh(new THREE.CylinderGeometry(0.75, 0.75, 0.08, 16), new THREE.MeshStandardMaterial({ color: 0x0f172a, metalness: 0.8 }));
-                    fanGrille.position.set(0, 0.72, fz);
+                    const fanGrille = new THREE.Mesh(new THREE.CylinderGeometry(0.75, 0.75, 0.1, 16), new THREE.MeshStandardMaterial({ color: 0x0f172a, metalness: 0.8 }));
+                    fanGrille.position.set(0, 0.75, fz);
                     chillerGroup.add(fanGrille);
                 });
 
                 cityGroup.add(chillerGroup);
             });
 
-            // Letrero Luminoso Corporativo en la Fachada Frontal Superior (Visible desde la calle)
-            const facadeBadge = new THREE.Mesh(new THREE.BoxGeometry(14.0, 0.9, 0.12), new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.3 }));
-            facadeBadge.position.set(0, 4.65, 13.06);
-            cityGroup.add(facadeBadge);
-
-            const facadeText = createTextSprite("I.E.S.T.P. HERMANOS CÁRCAMO - PAITA\nCENTRO DE DATOS TIER III · CAMPUS PRODUCTIVO", 0.0034, '#00e5ff');
-            facadeText.position.set(0, 4.65, 13.15);
-            cityGroup.add(facadeText);
-
-            // 4. PLAZA DE INGRESO Y VEREDAS PEATONALES DEL CAMPUS (Z = 13.0m a 20.0m)
-            const plazaGeo = new THREE.PlaneGeometry(28, 8.5);
+            // 4. PLAZA DE INGRESO ARQUITECTÓNICA Y VEREDAS PEATONALES DEL CAMPUS (Z = 13.0m a 21.0m)
+            const plazaGeo = new THREE.PlaneGeometry(36, 8.2);
             plazaGeo.rotateX(-Math.PI / 2);
-            const plazaMat = new THREE.MeshStandardMaterial({ color: 0xdbeafe, roughness: 0.65 });
+            const plazaMat = new THREE.MeshStandardMaterial({ color: 0xf1f5f9, roughness: 0.65 });
             const plaza = new THREE.Mesh(plazaGeo, plazaMat);
-            plaza.position.set(0, -0.01, 16.5);
+            plaza.position.set(0, -0.01, 17.1);
             plaza.receiveShadow = true;
             cityGroup.add(plaza);
 
-            // Jardineras con césped verde y palmeras costeras
-            [-11.5, 11.5].forEach(jx => {
-                const planter = new THREE.Mesh(new THREE.BoxGeometry(4.5, 0.28, 7.5), new THREE.MeshStandardMaterial({ color: 0x94a3b8 }));
-                planter.position.set(jx, 0.14, 16.5);
+            // Paseo central peatonal en granito blanco conectando el crucero cebra con la entrada principal
+            const walkPromenade = new THREE.Mesh(new THREE.PlaneGeometry(7.2, 8.2), new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.5 }));
+            walkPromenade.rotateX(-Math.PI / 2);
+            walkPromenade.position.set(0, 0.005, 17.1);
+            walkPromenade.receiveShadow = true;
+            cityGroup.add(walkPromenade);
+
+            // Bolardos de acero inoxidable con aro LED cian delimitando el paseo peatonal
+            for (let bz = 14.5; bz <= 20.5; bz += 2.0) {
+                [-3.9, 3.9].forEach(bx => {
+                    const bollard = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.75, 12), new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.9 }));
+                    bollard.position.set(bx, 0.38, bz);
+                    cityGroup.add(bollard);
+
+                    const ledRing = new THREE.Mesh(new THREE.CylinderGeometry(0.065, 0.065, 0.06, 12), new THREE.MeshBasicMaterial({ color: 0x00e5ff }));
+                    ledRing.position.set(bx, 0.72, bz);
+                    cityGroup.add(ledRing);
+                });
+            }
+
+            // =========================================================================
+            // GENERADOR DE ÁRBOLES SOFISTICADOS Y PAISAJISMO DE ALTA FIDELIDAD 3D
+            // =========================================================================
+            function createSophisticatedTree(type, x, z) {
+                const treeGroup = new THREE.Group();
+                treeGroup.position.set(x, 0.28, z);
+
+                if (type === 'shade') {
+                    // ÁRBOL DE SOMBRA ORNAMENTAL (FICUS / ROBLE ARQUITECTÓNICO DE ALTA GAMA)
+                    const trunkMat = new THREE.MeshStandardMaterial({ color: 0x3e2723, roughness: 0.95 });
+                    
+                    // Tronco cónico con ensanchamiento basal
+                    const baseTrunk = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.36, 1.9, 10), trunkMat);
+                    baseTrunk.position.y = 0.95;
+                    baseTrunk.castShadow = true;
+                    treeGroup.add(baseTrunk);
+
+                    // Ramas primarias gruesas
+                    const branchConfigs = [
+                        { len: 1.5, rotZ: 0.55, rotX: 0.20, py: 1.7, px: 0.50, pz: 0.20 },
+                        { len: 1.4, rotZ: -0.52, rotX: -0.25, py: 1.7, px: -0.48, pz: -0.22 },
+                        { len: 1.4, rotZ: 0.20, rotX: -0.52, py: 1.75, px: 0.20, pz: -0.48 },
+                        { len: 1.3, rotZ: -0.22, rotX: 0.50, py: 1.75, px: -0.22, pz: 0.46 }
+                    ];
+
+                    branchConfigs.forEach(b => {
+                        const branch = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.17, b.len, 7), trunkMat);
+                        branch.position.set(b.px, b.py, b.pz);
+                        branch.rotation.z = b.rotZ;
+                        branch.rotation.x = b.rotX;
+                        branch.castShadow = true;
+                        treeGroup.add(branch);
+                    });
+
+                    // Follaje volumétrico denso con 4 tonos botánicos verdes profundos y saturados
+                    const fMatDeep = new THREE.MeshLambertMaterial({ color: 0x0d4722 });
+                    const fMatRich = new THREE.MeshLambertMaterial({ color: 0x166534 });
+                    const fMatLush = new THREE.MeshLambertMaterial({ color: 0x15803d });
+                    const fMatBright = new THREE.MeshLambertMaterial({ color: 0x22c55e });
+
+                    const clusters = [
+                        { r: 1.45, x: 0, y: 3.2, z: 0, mat: fMatRich },
+                        { r: 1.25, x: 0.95, y: 2.8, z: 0.5, mat: fMatLush },
+                        { r: 1.20, x: -0.90, y: 2.7, z: -0.45, mat: fMatDeep },
+                        { r: 1.15, x: 0.45, y: 2.9, z: -0.9, mat: fMatDeep },
+                        { r: 1.10, x: -0.55, y: 3.0, z: 0.85, mat: fMatBright },
+                        { r: 1.05, x: 0, y: 4.1, z: 0, mat: fMatBright },
+                        { r: 0.90, x: 0.75, y: 3.7, z: -0.45, mat: fMatLush },
+                        { r: 0.85, x: -0.75, y: 3.6, z: 0.40, mat: fMatRich }
+                    ];
+
+                    clusters.forEach(c => {
+                        const foliageMesh = new THREE.Mesh(new THREE.DodecahedronGeometry(c.r, 1), c.mat);
+                        foliageMesh.position.set(c.x, c.y, c.z);
+                        foliageMesh.castShadow = true;
+                        treeGroup.add(foliageMesh);
+                    });
+
+                } else {
+                    // PALMERA REAL COSTERA ESCULTURAL (ALTURA CALIBRADA A 4.2M CON FRONDAS ARQUEADAS)
+                    const palmBarkMat = new THREE.MeshStandardMaterial({ color: 0x5c3821, roughness: 0.9 });
+                    
+                    // Tronco anillado esbelto con ligera inclinación natural
+                    let currY = 0;
+                    for (let s = 0; s < 5; s++) {
+                        const bottomR = 0.20 - (s * 0.012);
+                        const topR = 0.20 - ((s + 1) * 0.012);
+                        const segment = new THREE.Mesh(new THREE.CylinderGeometry(topR, bottomR, 0.72, 8), palmBarkMat);
+                        segment.position.set(Math.sin(s * 0.25) * 0.06, currY + 0.36, Math.cos(s * 0.2) * 0.04);
+                        segment.rotation.z = 0.02 * s;
+                        segment.castShadow = true;
+                        treeGroup.add(segment);
+
+                        // Anillo de corteza textural
+                        const ring = new THREE.Mesh(new THREE.TorusGeometry(bottomR + 0.01, 0.018, 5, 10), palmBarkMat);
+                        ring.rotation.x = Math.PI / 2;
+                        ring.position.set(segment.position.x, currY, segment.position.z);
+                        treeGroup.add(ring);
+
+                        currY += 0.70;
+                    }
+
+                    // Cuello verde esmeralda brillante (Crownshaft)
+                    const crownshaft = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.16, 0.85, 8), new THREE.MeshStandardMaterial({ color: 0x065f46, roughness: 0.45 }));
+                    crownshaft.position.set(0.12, currY + 0.42, 0.08);
+                    treeGroup.add(crownshaft);
+
+                    // Racimo de frutos / cocos colgantes
+                    const nutMat = new THREE.MeshStandardMaterial({ color: 0x451a03, roughness: 0.8 });
+                    for (let n = 0; n < 8; n++) {
+                        const ang = (n / 8) * Math.PI * 2;
+                        const nut = new THREE.Mesh(new THREE.SphereGeometry(0.11, 7, 7), nutMat);
+                        nut.position.set(0.12 + Math.cos(ang) * 0.22, currY + 0.15, 0.08 + Math.sin(ang) * 0.22);
+                        treeGroup.add(nut);
+                    }
+
+                    // 16 Frondas de palmera curvadas y arqueadas en 360 grados con caída botánica
+                    const frondMatEmerald = new THREE.MeshLambertMaterial({ color: 0x0d4722, side: THREE.DoubleSide });
+                    const frondMatLush = new THREE.MeshLambertMaterial({ color: 0x166534, side: THREE.DoubleSide });
+
+                    for (let f = 0; f < 16; f++) {
+                        const ang = (f / 16) * Math.PI * 2;
+                        const frondGroup = new THREE.Group();
+                        frondGroup.position.set(0.12, currY + 0.82, 0.08);
+                        frondGroup.rotation.y = ang;
+
+                        // Cada fronda es una curva que sale hacia afuera y cae suavemente
+                        const segmentsCount = 5;
+                        let fX = 0, fY = 0, fZ = 0;
+                        for (let s = 0; s < segmentsCount; s++) {
+                            const segLen = 0.55;
+                            const pitch = 0.15 + (s * 0.25); // Curvatura descendente progresiva
+                            const fBlade = new THREE.Mesh(new THREE.PlaneGeometry(0.55 - s * 0.08, segLen), s % 2 === 0 ? frondMatEmerald : frondMatLush);
+                            fBlade.position.set(0, fY + segLen * 0.45, fZ + segLen * 0.45);
+                            fBlade.rotation.x = pitch;
+                            frondGroup.add(fBlade);
+
+                            fY += Math.cos(pitch) * segLen * 0.8 - (s * 0.12);
+                            fZ += Math.sin(pitch) * segLen + 0.35;
+                        }
+
+                        treeGroup.add(frondGroup);
+                    }
+                }
+
+                // Arbustos ornamentales y flores en la base
+                const bushMat = new THREE.MeshStandardMaterial({ color: 0x064e3b, roughness: 0.8 });
+                const flowerMatRed = new THREE.MeshStandardMaterial({ color: 0xbe123c, roughness: 0.6 });
+                const flowerMatGold = new THREE.MeshStandardMaterial({ color: 0xd97706, roughness: 0.6 });
+
+                [[-0.65, -0.5], [0.70, -0.45], [-0.55, 0.65], [0.60, 0.60]].forEach((bp, bIdx) => {
+                    const bush = new THREE.Mesh(new THREE.DodecahedronGeometry(0.42, 1), bushMat);
+                    bush.position.set(bp[0], 0.32, bp[1]);
+                    treeGroup.add(bush);
+
+                    // Flores
+                    const flw = new THREE.Mesh(new THREE.SphereGeometry(0.13, 6, 6), bIdx % 2 === 0 ? flowerMatRed : flowerMatGold);
+                    flw.position.set(bp[0] + 0.05, 0.52, bp[1] + 0.05);
+                    treeGroup.add(flw);
+                });
+
+                // Foco empotrado de piso (Uplight cálido)
+                const upLight = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 0.04, 12), new THREE.MeshBasicMaterial({ color: 0xfef08a }));
+                upLight.position.set(0.35, 0.02, 0.35);
+                treeGroup.add(upLight);
+
+                return treeGroup;
+            }
+
+            // Jardineras Paisajísticas Simétricas a la izquierda y derecha
+            [-10.8, 10.8].forEach((jx) => {
+                // Cordón perimetral de granito pulido
+                const planter = new THREE.Mesh(new THREE.BoxGeometry(5.4, 0.35, 8.2), new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.6 }));
+                planter.position.set(jx, 0.17, 17.1);
                 cityGroup.add(planter);
 
-                const grass = new THREE.Mesh(new THREE.BoxGeometry(4.2, 0.06, 7.2), new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.9 }));
-                grass.position.set(jx, 0.28, 16.5);
-                cityGroup.add(grass);
+                // Tierra fértil oscura
+                const soil = new THREE.Mesh(new THREE.BoxGeometry(5.0, 0.08, 7.8), new THREE.MeshStandardMaterial({ color: 0x1c1917, roughness: 0.98 }));
+                soil.position.set(jx, 0.28, 17.1);
+                cityGroup.add(soil);
 
-                // Palmeras costeras peruanas
-                [-2.2, 2.2].forEach(pz => {
-                    const palmGroup = new THREE.Group();
-                    palmGroup.position.set(jx, 0.28, 16.5 + pz);
+                // 1 Árbol de sombra frondoso en la parte posterior + 1 Palmera real arqueada al frente
+                const tree1 = createSophisticatedTree('shade', jx, 14.8);
+                cityGroup.add(tree1);
 
-                    // Tronco fibroso alto
-                    const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.24, 6.2, 8), new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.9 }));
-                    trunk.position.y = 3.1;
-                    palmGroup.add(trunk);
-
-                    // Copa de hojas de palmera
-                    const leafMat = new THREE.MeshStandardMaterial({ color: 0x16a34a, roughness: 0.6, side: THREE.DoubleSide });
-                    for (let a = 0; a < 8; a++) {
-                        const ang = (a / 8) * Math.PI * 2;
-                        const frond = new THREE.Mesh(new THREE.ConeGeometry(0.65, 2.4, 4), leafMat);
-                        frond.position.set(Math.cos(ang) * 0.9, 6.2, Math.sin(ang) * 0.9);
-                        frond.rotation.z = Math.cos(ang) * 0.8;
-                        frond.rotation.x = Math.sin(ang) * 0.8;
-                        palmGroup.add(frond);
-                    }
-                    cityGroup.add(palmGroup);
-                });
+                const tree2 = createSophisticatedTree('palm', jx, 19.2);
+                cityGroup.add(tree2);
             });
 
-            // 5. PISTA / AVENIDA INDUSTRIAL PRINCIPAL (2 CARRILES DE ASFALTO A Z = 21.0m a 35.0m)
-            const roadW = 240, roadDepth = 14;
-            const roadGeo = new THREE.PlaneGeometry(roadW, roadDepth);
-            roadGeo.rotateX(-Math.PI / 2);
-            const roadMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.92 });
-            const road = new THREE.Mesh(roadGeo, roadMat);
-            road.position.set(0, 0.0, 28.0);
-            road.receiveShadow = true;
-            cityGroup.add(road);
-
-            // Línea central amarilla discontinua de la avenida
-            const yellowLineMat = new THREE.MeshBasicMaterial({ color: 0xfacc15 });
-            for (let rx = -110; rx <= 110; rx += 8) {
-                const dash = new THREE.Mesh(new THREE.PlaneGeometry(4.2, 0.22), yellowLineMat);
-                dash.rotateX(-Math.PI / 2);
-                dash.position.set(rx, 0.015, 28.0);
-                cityGroup.add(dash);
-            }
-
-            // Líneas blancas continuas laterales de calzada
-            const whiteLineMat = new THREE.MeshBasicMaterial({ color: 0xf8fafc });
-            [21.6, 34.4].forEach(rz => {
-                const borderLine = new THREE.Mesh(new THREE.PlaneGeometry(roadW, 0.25), whiteLineMat);
-                borderLine.rotateX(-Math.PI / 2);
-                borderLine.position.set(0, 0.015, rz);
-                cityGroup.add(borderLine);
-            });
-
-            // Crucero peatonal cebra frente al campus (Z = 21.0 a 35.0m, X = -4.0 a +4.0)
-            for (let zx = 21.8; zx <= 34.2; zx += 1.4) {
-                const zebra = new THREE.Mesh(new THREE.PlaneGeometry(4.8, 0.65), whiteLineMat);
-                zebra.rotateX(-Math.PI / 2);
-                zebra.position.set(0, 0.018, zx);
-                cityGroup.add(zebra);
-            }
-
-            // Veredas peatonales (Sidewalks) a ambos lados de la pista
-            const sidewalkMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, roughness: 0.85 });
-            [20.5, 36.5].forEach((sz, sIdx) => {
-                const walk = new THREE.Mesh(new THREE.BoxGeometry(roadW, 0.22, 3.2), sidewalkMat);
-                walk.position.set(0, 0.11, sz);
-                walk.receiveShadow = true;
-                cityGroup.add(walk);
-            });
-
-            // Postes de Alumbrado Público LED doble a lo largo de la avenida
-            [-70, -45, -20, 20, 45, 70].forEach(lx => {
-                const poleGroup = new THREE.Group();
-                poleGroup.position.set(lx, 0, 36.8);
-
-                const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.10, 0.14, 7.5, 8), new THREE.MeshStandardMaterial({ color: 0x64748b, metalness: 0.8 }));
-                pole.position.y = 3.75;
-                poleGroup.add(pole);
-
-                const arm = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.08, 0.08), new THREE.MeshStandardMaterial({ color: 0x64748b }));
-                arm.position.set(0, 7.4, -0.6);
-                arm.rotateY(Math.PI / 2);
-                poleGroup.add(arm);
-
-                const lamp = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.12, 0.25), new THREE.MeshBasicMaterial({ color: 0xffffff }));
-                lamp.position.set(0, 7.35, -1.6);
-                poleGroup.add(lamp);
-
-                cityGroup.add(poleGroup);
-            });
-
-            // Totem Corporativo Monumental en el ingreso de la avenida
+            // TOTEM INSTITUCIONAL DE BIENVENIDA EN EL BORDE DE LA VEREDA (X = +4.8m)
             const totemGroup = new THREE.Group();
-            totemGroup.position.set(-6.5, 0, 19.8);
-            const totemBase = new THREE.Mesh(new THREE.BoxGeometry(3.4, 4.2, 0.5), new THREE.MeshStandardMaterial({ color: 0x0f172a, metalness: 0.6 }));
-            totemBase.position.y = 2.1;
-            totemGroup.add(totemBase);
+            totemGroup.position.set(4.8, 0, 20.0);
+            const tBase = new THREE.Mesh(new THREE.BoxGeometry(1.6, 3.4, 0.28), new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.4 }));
+            tBase.position.y = 1.7;
+            totemGroup.add(tBase);
 
-            const totemSign = createTextSprite("I.E.S.T.P. HERMANOS CÁRCAMO\nDATA CENTER TIER III\nCAMPUS PRODUCTIVO PAITA", 0.0030, '#00e5ff');
-            totemSign.position.set(0, 2.3, 0.28);
-            totemGroup.add(totemSign);
+            const tTrim = new THREE.Mesh(new THREE.BoxGeometry(1.66, 0.12, 0.32), extTrimMat);
+            tTrim.position.y = 3.4;
+            totemGroup.add(tTrim);
+
+            const totemText = createTextSprite("CAMPUS TIER III\nI.E.S.T.P. HERMANOS CÁRCAMO\nPAITA - PERÚ", 0.0036, '#00e5ff');
+            totemText.position.set(0, 2.3, 0.22);
+            totemGroup.add(totemText);
             cityGroup.add(totemGroup);
 
-            // Garita de Control y Seguridad de Acceso Vehicular (Arquitectura Moderna Acristalada en X = -7.5)
+            // GARITA DE CONTROL Y SEGURIDAD ACERO Y CRISTAL 360° (Ubicada en la entrada vehicular en X = -14.2m)
             const guardBooth = new THREE.Group();
-            guardBooth.position.set(-7.5, 0, 19.5);
+            guardBooth.position.set(-14.2, 0, 19.5);
 
             // Zócalo metálico inferior
             const gBase = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.9, 1.8), new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.4 }));
@@ -4143,7 +4341,77 @@
 
             cityGroup.add(guardBooth);
 
-            // 6. ESTACIONAMIENTO Y VEHÍCULOS (Camionetas técnicas, furgoneta y autos)
+            // 5. PISTA / AVENIDA INDUSTRIAL PRINCIPAL (2 CARRILES DE ASFALTO A Z = 21.0m a 35.0m)
+            const roadW = 240, roadDepth = 14;
+            const roadGeo = new THREE.PlaneGeometry(roadW, roadDepth);
+            roadGeo.rotateX(-Math.PI / 2);
+            const roadMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.92 });
+            const road = new THREE.Mesh(roadGeo, roadMat);
+            road.position.set(0, 0.0, 28.0);
+            road.receiveShadow = true;
+            cityGroup.add(road);
+
+            // Línea central amarilla discontinua de la avenida
+            const yellowLineMat = new THREE.MeshBasicMaterial({ color: 0xfacc15 });
+            for (let rx = -110; rx <= 110; rx += 8) {
+                const dash = new THREE.Mesh(new THREE.PlaneGeometry(4.2, 0.22), yellowLineMat);
+                dash.rotateX(-Math.PI / 2);
+                dash.position.set(rx, 0.015, 28.0);
+                cityGroup.add(dash);
+            }
+
+            // Líneas blancas continuas laterales de calzada
+            const whiteLineMat = new THREE.MeshBasicMaterial({ color: 0xf8fafc });
+            [21.6, 34.4].forEach(rz => {
+                const borderLine = new THREE.Mesh(new THREE.PlaneGeometry(roadW, 0.25), whiteLineMat);
+                borderLine.rotateX(-Math.PI / 2);
+                borderLine.position.set(0, 0.015, rz);
+                cityGroup.add(borderLine);
+            });
+
+            // Crucero peatonal cebra centrado frente a la entrada principal (Z = 21.2 a 34.8m, X = -3.5 a +3.5)
+            for (let zx = 21.6; zx <= 34.4; zx += 1.4) {
+                const zebra = new THREE.Mesh(new THREE.PlaneGeometry(5.2, 0.7), whiteLineMat);
+                zebra.rotateX(-Math.PI / 2);
+                zebra.position.set(0, 0.018, zx);
+                cityGroup.add(zebra);
+            }
+
+            // Veredas peatonales (Sidewalks) a ambos lados de la pista
+            const sidewalkMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, roughness: 0.85 });
+            [20.5, 36.5].forEach((sz) => {
+                const walk = new THREE.Mesh(new THREE.BoxGeometry(roadW, 0.22, 3.2), sidewalkMat);
+                walk.position.set(0, 0.11, sz);
+                walk.receiveShadow = true;
+                cityGroup.add(walk);
+            });
+
+            // Postes de Alumbrado Público LED doble a lo largo de la avenida
+            [-70, -45, -20, 20, 45, 70].forEach(lx => {
+                const poleGroup = new THREE.Group();
+                poleGroup.position.set(lx, 0, 36.8);
+
+                const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.18, 9.5, 8), new THREE.MeshStandardMaterial({ color: 0x475569, metalness: 0.7 }));
+                pole.position.y = 4.75;
+                poleGroup.add(pole);
+
+                const arm = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.08, 3.2), new THREE.MeshStandardMaterial({ color: 0x475569, metalness: 0.8 }));
+                arm.position.set(0, 9.4, -1.2);
+                poleGroup.add(arm);
+
+                const lamp = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.12, 0.75), new THREE.MeshStandardMaterial({ color: 0x0f172a }));
+                lamp.position.set(0, 9.32, -2.4);
+                poleGroup.add(lamp);
+
+                const lampLight = new THREE.Mesh(new THREE.PlaneGeometry(0.3, 0.7), new THREE.MeshBasicMaterial({ color: 0xffffff }));
+                lampLight.rotateX(Math.PI / 2);
+                lampLight.position.set(0, 9.25, -2.4);
+                poleGroup.add(lampLight);
+
+                cityGroup.add(poleGroup);
+            });
+
+            // 6. ESTACIONAMIENTO Y PARQUE AUTOMOTOR TÉCNICO
             function addVehicle(type, paintColor, x, z, rotY) {
                 const vGroup = new THREE.Group();
                 vGroup.position.set(x, 0, z);
@@ -4154,7 +4422,7 @@
                 const wheelMat = new THREE.MeshStandardMaterial({ color: 0x090d16, roughness: 0.9 });
 
                 if (type === 'pickup') {
-                    // Chasis inferior de camioneta 4x4
+                    // Chasis inferior de camioneta 4x4 Toyota Hilux
                     const chassis = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.55, 4.8), paintMat);
                     chassis.position.y = 0.58;
                     vGroup.add(chassis);
@@ -4170,7 +4438,7 @@
                     windshield.rotation.x = -0.3;
                     vGroup.add(windshield);
 
-                    // Barra antivuelco y caja trasera
+                    // Barra antivuelco
                     const rollbar = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 1.7, 8), new THREE.MeshStandardMaterial({ color: 0x0f172a, metalness: 0.9 }));
                     rollbar.position.set(0, 1.6, -1.0);
                     rollbar.rotateZ(Math.PI / 2);
@@ -4216,114 +4484,69 @@
                 });
 
                 // Faros delanteros y traseros
-                const hl = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.12, 0.05), new THREE.MeshBasicMaterial({ color: 0xffffff }));
-                hl.position.set(-0.6, 0.65, 2.42);
+                const hl = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.14, 0.08), new THREE.MeshBasicMaterial({ color: 0xffffff }));
+                hl.position.set(0, 0.62, 2.4);
                 vGroup.add(hl);
-                const hr = hl.clone();
-                hr.position.x = 0.6;
+
+                const hr = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.14, 0.08), new THREE.MeshBasicMaterial({ color: 0xef4444 }));
+                hr.position.set(0, 0.62, -2.4);
                 vGroup.add(hr);
 
                 cityGroup.add(vGroup);
             }
 
-            // Vehículos estacionados en la zona técnica lateral y bahía de carga
-            addVehicle('pickup', 0xf8fafc, -15.5, 16.0, 0); // Camioneta blanca de guardia técnica
-            addVehicle('pickup', 0x94a3b8, -19.5, 16.0, 0); // Camioneta plateada 4x4
-            addVehicle('van', 0xf1f5f9, -23.5, 16.0, 0);    // Furgoneta técnica de fibra óptica
-            addVehicle('pickup', 0x0284c7, 16.5, 16.0, 0);  // Camioneta de soporte técnico de campo (azul eléctrico)
+            // Vehículos estacionados en la zona técnica lateral (X = -18 a -25m)
+            addVehicle('pickup', 0xf8fafc, -19.0, 16.0, 0); // Camioneta blanca de guardia técnica
+            addVehicle('pickup', 0x94a3b8, -23.0, 16.0, 0); // Camioneta plateada 4x4
+            addVehicle('van', 0xf1f5f9, -27.0, 16.0, 0);    // Furgoneta técnica de fibra óptica
+            addVehicle('pickup', 0x0284c7, 18.0, 16.0, 0);  // Camioneta de soporte técnico (azul institucional)
 
             // Vehículos transitando en la pista
-            addVehicle('sedan', 0x0284c7, 32.0, 25.0, Math.PI / 2);  // Auto azul transitando hacia la derecha
+            addVehicle('sedan', 0x0284c7, 34.0, 25.0, Math.PI / 2);  // Auto azul transitando hacia la derecha
             addVehicle('sedan', 0x334155, -28.0, 31.0, -Math.PI / 2); // Auto gris transitando hacia la izquierda
 
             // 7. EDIFICIOS DE LA CIUDAD Y PLANTAS INDUSTRIALES DE PAITA (SKYLINE ENVOLVENTE)
-            // Diseñados en un radio de 45m a 115m para formar una ciudad completa alrededor
-            const cityBuildings = [
-                // Al otro lado de la avenida (Sur, Z = 45m a 85m)
-                { x: -55, z: 58, w: 22, d: 20, h: 26, color: 0x1e293b, type: 'tower' },
-                { x: -25, z: 62, w: 26, d: 24, h: 34, color: 0x0f172a, type: 'tower' },
-                { x: 10, z: 58, w: 28, d: 22, h: 22, color: 0x334155, type: 'office' },
-                { x: 45, z: 64, w: 24, d: 22, h: 38, color: 0x1e293b, type: 'tower' },
-                { x: 80, z: 60, w: 30, d: 26, h: 18, color: 0x475569, type: 'office' },
-
-                // Costado Oeste (Plantas industriales y pesqueras de Paita, X = -50m a -95m)
-                { x: -55, z: 8, w: 28, d: 34, h: 14, color: 0x475569, type: 'plant' },
-                { x: -58, z: -32, w: 32, d: 36, h: 16, color: 0x334155, type: 'plant' },
-                { x: -92, z: -10, w: 35, d: 45, h: 20, color: 0x1e293b, type: 'plant' },
-
-                // Costado Este (Instalaciones de telecomunicaciones y naves industriales, X = +50m a +95m)
-                { x: 55, z: 8, w: 28, d: 32, h: 15, color: 0x334155, type: 'plant' },
-                { x: 58, z: -32, w: 30, d: 34, h: 18, color: 0x475569, type: 'plant' },
-                { x: 95, z: -10, w: 38, d: 42, h: 24, color: 0x1e293b, type: 'office' },
-
-                // Fondo Norte (Atrás del Datacenter, Z = -45m a -90m)
-                { x: -35, z: -60, w: 30, d: 24, h: 28, color: 0x0f172a, type: 'tower' },
-                { x: 5, z: -65, w: 34, d: 26, h: 32, color: 0x1e293b, type: 'tower' },
-                { x: 45, z: -62, w: 28, d: 24, h: 25, color: 0x334155, type: 'tower' }
+            const buildingData = [
+                { x: -55, z: 65, w: 28, d: 24, h: 42, color: 0x334155, name: 'Torre Corporativa Pesquera' },
+                { x: 0, z: 75, w: 32, d: 22, h: 54, color: 0x1e293b, name: 'Centro Financiero del Puerto' },
+                { x: 55, z: 65, w: 26, d: 26, h: 38, color: 0x475569, name: 'Sede Administrativa Seafrost' },
+                { x: -85, z: 15, w: 36, d: 28, h: 48, color: 0x1e293b, name: 'Terminal Logístico Portuario' },
+                { x: -75, z: -40, w: 30, d: 34, h: 32, color: 0x334155, name: 'Planta de Congelados Hayduk' },
+                { x: 75, z: -40, w: 34, d: 30, h: 36, color: 0x475569, name: 'Complejo Industrial TASA' },
+                { x: 85, z: 15, w: 28, d: 24, h: 50, color: 0x1e293b, name: 'Edificio Telecomunicaciones Norte' },
+                { x: -45, z: -70, w: 38, d: 26, h: 28, color: 0x64748b, name: 'Almacén Frigorífico Paita' },
+                { x: 35, z: -70, w: 36, d: 28, h: 30, color: 0x475569, name: 'Centro de Distribución Agrícola' },
+                { x: -105, z: 70, w: 24, d: 24, h: 34, color: 0x334155, name: 'Oficinas Aduaneras' },
+                { x: 105, z: 70, w: 26, d: 26, h: 40, color: 0x1e293b, name: 'Cámara de Comercio de Paita' }
             ];
 
-            const windowGlassMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8 });
-            const plantRoofMat = new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.4 });
-
-            cityBuildings.forEach(b => {
-                const bMesh = new THREE.Mesh(
-                    new THREE.BoxGeometry(b.w, b.h, b.d),
-                    new THREE.MeshStandardMaterial({ color: b.color, roughness: 0.7, metalness: 0.25 })
-                );
+            const windowBandMat = new THREE.MeshBasicMaterial({ color: 0x7dd3fc, transparent: true, opacity: 0.65 });
+            buildingData.forEach(b => {
+                const bMesh = new THREE.Mesh(new THREE.BoxGeometry(b.w, b.h, b.d), new THREE.MeshStandardMaterial({ color: b.color, roughness: 0.7 }));
                 bMesh.position.set(b.x, b.h / 2, b.z);
+                bMesh.castShadow = true;
                 cityGroup.add(bMesh);
 
-                // Ventanales iluminados de edificios corporativos
-                if (b.type === 'tower' || b.type === 'office') {
-                    const floors = Math.floor(b.h / 4.5);
-                    for (let f = 1; f < floors; f++) {
-                        const winBand = new THREE.Mesh(
-                            new THREE.BoxGeometry(b.w * 0.92, 1.2, b.d + 0.15),
-                            windowGlassMat
-                        );
-                        winBand.position.set(b.x, f * 4.5, b.z);
-                        cityGroup.add(winBand);
-                    }
-                } else if (b.type === 'plant') {
-                    // Techo a dos aguas de nave industrial pesquera
-                    const roofPrism = new THREE.Mesh(new THREE.ConeGeometry(b.w * 0.7, 3.5, 4), plantRoofMat);
-                    roofPrism.position.set(b.x, b.h + 1.75, b.z);
-                    roofPrism.rotation.y = Math.PI / 4;
-                    cityGroup.add(roofPrism);
-
-                    // Chimenea de extracción industrial
-                    const stack = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.6, 6.5, 8), new THREE.MeshStandardMaterial({ color: 0x94a3b8 }));
-                    stack.position.set(b.x + b.w * 0.3, b.h + 3.25, b.z + b.d * 0.3);
-                    cityGroup.add(stack);
+                // Franjas de ventanas iluminadas
+                const floorCount = Math.floor(b.h / 4.5);
+                for (let f = 1; f < floorCount; f++) {
+                    const winBand = new THREE.Mesh(new THREE.BoxGeometry(b.w + 0.15, 0.7, b.d + 0.15), windowBandMat);
+                    winBand.position.set(b.x, f * 4.5, b.z);
+                    cityGroup.add(winBand);
                 }
-            });
 
-            // Torres de Telecomunicaciones y Antenas con baliza roja de aviación
-            [[-75, 40, -75], [75, 42, -75]].forEach(tp => {
-                const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 1.2, tp[1], 4), new THREE.MeshStandardMaterial({ color: 0xef4444, metalness: 0.9 }));
-                mast.position.set(tp[0], tp[1] / 2, tp[2]);
-                cityGroup.add(mast);
-
-                const beacon = new THREE.Mesh(new THREE.SphereGeometry(0.45, 8, 8), new THREE.MeshBasicMaterial({ color: 0xff1744 }));
-                beacon.position.set(tp[0], tp[1], tp[2]);
-                cityGroup.add(beacon);
+                // Remate de parapeto en la azotea
+                const roofTrim = new THREE.Mesh(new THREE.BoxGeometry(b.w + 0.3, 0.8, b.d + 0.3), extTrimMat);
+                roofTrim.position.set(b.x, b.h + 0.4, b.z);
+                cityGroup.add(roofTrim);
             });
 
             // 8. PEATONES ANIMADOS CAMINANDO POR LA VEREDA DE LA CIUDAD ("PERSONAS CAMINANDO POR AFUERA")
-            outdoorPedestrians = [];
-
             const pedestrianConfigs = [
-                // Vereda Sur de la pista (Z = 36.5m)
-                { startX: -45, endX: 45, x: -25, z: 36.5, dir: 1, speed: 2.2, shirtColor: 0x0284c7, pantsColor: 0x1e293b, hasHelmet: false, name: 'Peatón Ciudadano 1' },
-                { startX: -45, endX: 45, x: 15, z: 36.5, dir: -1, speed: 1.9, shirtColor: 0xe11d48, pantsColor: 0x0f172a, hasHelmet: false, name: 'Peatón Ciudadana 2' },
-                { startX: -50, endX: 50, x: -5, z: 36.5, dir: 1, speed: 2.4, shirtColor: 0xf59e0b, pantsColor: 0x1e293b, hasHelmet: true, name: 'Ingeniero de Campo' },
-                { startX: -40, endX: 40, x: 30, z: 36.5, dir: -1, speed: 2.0, shirtColor: 0x10b981, pantsColor: 0x334155, hasHelmet: false, name: 'Estudiante APSTI' },
-
-                // Vereda Norte frente al Datacenter (Z = 20.2m)
+                { startX: -35, endX: 35, x: -12, z: 36.8, dir: 1, speed: 2.2, shirtColor: 0x3b82f6, pantsColor: 0x1e293b, hasHelmet: false, name: 'Ingeniero de Sistemas' },
+                { startX: -35, endX: 35, x: 18, z: 36.8, dir: -1, speed: 1.9, shirtColor: 0xf59e0b, pantsColor: 0x334155, hasHelmet: true, name: 'Supervisor Eléctrico' },
                 { startX: -25, endX: 25, x: -18, z: 20.2, dir: 1, speed: 1.8, shirtColor: 0x8b5cf6, pantsColor: 0x0f172a, hasHelmet: false, name: 'Operador de Planta' },
                 { startX: -25, endX: 25, x: 12, z: 20.2, dir: -1, speed: 2.1, shirtColor: 0x06b6d4, pantsColor: 0x1e293b, hasHelmet: true, name: 'Técnico de Redes' },
-
-                // Cruzando por el crucero cebra peatonal (Z de 35 a 21m)
                 { startX: 21, endX: 35, x: 0, z: 26.0, dir: -1, speed: 1.6, isCrossing: true, shirtColor: 0xec4899, pantsColor: 0x1e293b, hasHelmet: false, name: 'Visitante Cruzando' }
             ];
 
@@ -4406,7 +4629,6 @@
             scene.add(cityGroup);
         }
 
-        // Bucle de animación de peatones en la ciudad exterior (Caminan y mueven brazos/piernas a 60 FPS)
         function updateOutdoorPedestrians(delta, now) {
             if (!outdoorPedestrians || outdoorPedestrians.length === 0) return;
 
@@ -7952,7 +8174,7 @@
             const views = {
                 iso: { pos: new THREE.Vector3(0, 3.5, 10.8), target: new THREE.Vector3(0, 1.6, -1.0) },
                 cold_aisle: { pos: new THREE.Vector3(0, 1.85, 7.5), target: new THREE.Vector3(0, 1.5, -4) },
-                city: { pos: new THREE.Vector3(-18.0, 9.5, 42.0), target: new THREE.Vector3(0.0, 2.5, 18.0) },
+                city: { pos: new THREE.Vector3(0.0, 7.5, 40.0), target: new THREE.Vector3(0.0, 2.6, 13.0) },
                 noc: { pos: new THREE.Vector3(0, 3.2, -10.5), target: new THREE.Vector3(0, 2.2, -16.0) },
                 power: { pos: new THREE.Vector3(5.2, 2.2, -8.2), target: new THREE.Vector3(7.6, 1.4, -5.5) },
                 rack01: { pos: new THREE.Vector3(-0.6, 1.8, -5.5), target: new THREE.Vector3(-2.3, 1.4, -5.5) },
