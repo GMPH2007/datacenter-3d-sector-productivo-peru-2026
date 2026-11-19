@@ -63,6 +63,20 @@
 
 ---
 
+### 7. Campus Tecnológico Exterior, Avenida de Acceso y Skyline Urbano
+> Emplazamiento exterior completo que elimina el vacío negro: fachada arquitectónica exterior del datacenter con revestimiento grafito y azul institucional, chillers HVAC industriales de cubierta, plaza ajardinada con palmeras costeras peruanas, garita de control de accesos vehiculares acristalada con barrera levadiza y camionetas técnicas de inspección.
+
+<div align="center">
+  <img src="screenshots/campus_urbano_datacenter_exterior.png" alt="Campus Tecnológico Exterior y Datacenter" width="850">
+</div>
+
+### 8. Cruce Peatonal Cebra, Pista Asfaltada y Transeúntes Articulados
+> Avenida principal de doble carril con señalización vial reglamentaria (línea central discontinua amarilla, bordes blancos continuos y crucero cebra), postes de alumbrado público LED doble y transeúntes 3D articulados con animación de marcha continua (60 FPS) transitando entre el centro de datos y las industrias pesqueras del puerto de Paita bajo cielo diurno despejado.
+
+<div align="center">
+  <img src="screenshots/pista_avenida_peatones_ciudad.png" alt="Avenida Asfaltada, Cruce Peatonal y Transeúntes" width="850">
+</div>
+
 ## 🚀 CARACTERÍSTICAS TÉCNICAS DESTACADAS
 
 ```mermaid
