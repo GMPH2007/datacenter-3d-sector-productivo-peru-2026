@@ -3,7 +3,8 @@
 
 **Programa de Estudios:** Arquitectura de Plataformas y Servicios de Tecnologías de la Información (APSTI VI - 2026)  
 **Unidad Didáctica:** Tutoría APSTI VI / Proyecto Final Integrador  
-**Docente Asesor:** Prof. Javier Eduardo Jaramillo Atoche  
+**Institución:** Instituto de Educación Superior Tecnológico Público Hermanos Cárcamo - Paita
+**Docente Asesor:** Prof. Javier Eduardo Jaramillo Atoche
 **Entorno de Ejecución:** WebGL / Three.js 60 FPS nativo (Archivo interactivo: [`index.html`](file:///c:/Users/Misael%20P/Downloads/Trabajo%20jRAMAILLO/index.html))
 
 ---

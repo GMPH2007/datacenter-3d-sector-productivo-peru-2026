@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Enterprise Datacenter Twin 3D - Tier III Modular | Grupo 01 APSTI VI</title>
+    <title>Data Center Twin 3D - Sector Productivo Perú 2026 | I.E.S.T.P. Hermanos Cárcamo</title>
     <!-- Fuentes Google de alta definición técnica -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1446,7 +1446,7 @@
                         <span>DATA CENTER TWIN 3D</span>
                         <span style="font-size: 11px; color: var(--cyan-accent); font-weight: normal;">• SECTOR PRODUCTIVO PERÚ 2026</span>
                     </div>
-                    <div class="brand-subtitle">Asesor: Prof. Javier Eduardo Jaramillo Atoche | APSTI VI - Grupo 01</div>
+                    <div class="brand-subtitle">I.E.S.T.P. Hermanos Cárcamo - Paita | Asesor: Prof. Javier Eduardo Jaramillo Atoche | APSTI VI - Grupo 01</div>
                 </div>
             </div>
 
@@ -1972,7 +1972,7 @@
                 <div>
                     <h2 class="modal-title" style="color: #ffd700;">🎓 GUÍA DE SUSTENTACIÓN - GRUPO 01 (APSTI VI)</h2>
                     <div style="font-size: 11px; color: var(--text-dim); margin-top: 3px;">
-                        Asesor: Prof. Javier Eduardo Jaramillo Atoche | Instituto de Educación Superior Tecnológico
+                        Asesor: Prof. Javier Eduardo Jaramillo Atoche | Instituto de Educación Superior Tecnológico Público Hermanos Cárcamo - Paita
                     </div>
                 </div>
                 <button class="modal-close-btn" id="btnCloseDefenseModal">&times;</button>
@@ -2101,8 +2101,9 @@
 
     <script>
         /* ==========================================================================
-           ENTERPRISE DATACENTER TWIN 3D - TIER III MODULAR
-           GRUPO 01 - APSTI VI (Tutoría / Proyecto Final Integrador 2026)
+           DATA CENTER TWIN 3D - SECTOR PRODUCTIVO PERÚ 2026
+           I.E.S.T.P. HERMANOS CÁRCAMO - PAITA | GRUPO 01 - APSTI VI
+           (Tutoría / Proyecto Final Integrador 2026)
            Asesor: Prof. Javier Eduardo Jaramillo Atoche
            ========================================================================== */
 
@@ -3568,7 +3569,7 @@
                 torsoGroup.add(stripeV);
             });
 
-            // Fotocheck / Credencial institucional SENATI APSTI VI con código QR
+            // Fotocheck / Credencial institucional IESTP Hermanos Cárcamo APSTI VI con código QR
             const badgeHolder = new THREE.Mesh(new THREE.BoxGeometry(0.075, 0.10, 0.015), new THREE.MeshStandardMaterial({ color: 0x0284c7 }));
             badgeHolder.position.set(0.11, 0.08, 0.12);
             torsoGroup.add(badgeHolder);
@@ -3635,7 +3636,7 @@
             helmetCrest.position.set(0, 0.18, 0);
             headGroup.add(helmetCrest);
 
-            // Logotipo SENATI en el frontal del casco
+            // Emblema institucional IESTP Hermanos Cárcamo en el frontal del casco
             const helmetLogo = new THREE.Mesh(new THREE.PlaneGeometry(0.05, 0.03), new THREE.MeshBasicMaterial({ color: 0x0284c7 }));
             helmetLogo.position.set(0, 0.13, 0.145);
             headGroup.add(helmetLogo);
@@ -4544,7 +4545,7 @@
             plaque.position.set(-3.8, 2.2, 12.70);
             scene.add(plaque);
 
-            const plaqueText = createTextSprite("DATACENTER TIER III\nANSI/TIA-942 APSTI VI 2026", 0.0032, '#00e5ff');
+            const plaqueText = createTextSprite("DATACENTER TIER III\nIESTP HERMANOS CÁRCAMO\nPAITA - APSTI VI 2026", 0.0028, '#00e5ff');
             plaqueText.position.set(-3.8, 2.2, 12.67);
             scene.add(plaqueText);
 
@@ -4620,7 +4621,7 @@
             scene.add(canopy);
 
             // Letrero exterior sobre la marquesina (Visible desde afuera)
-            const exteriorSignSprite = createTextSprite("DATA CENTER TIER III | SENATI APSTI VI - 2026\n[ EVALUACIÓN: PROF. JAVIER JARAMILLO ATOCHE ]", 0.0026, '#00e5ff');
+            const exteriorSignSprite = createTextSprite("DATA CENTER TIER III | I.E.S.T.P. HERMANOS CÁRCAMO - PAITA\nAPSTI VI - 2026 | ASESOR: PROF. JAVIER JARAMILLO ATOCHE", 0.0025, '#00e5ff');
             exteriorSignSprite.position.set(0, 3.9, 13.8);
             scene.add(exteriorSignSprite);
 

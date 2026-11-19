@@ -5,7 +5,7 @@
 [![WebGL 2.0](https://img.shields.io/badge/WebGL-2.0%2060%20FPS-00e5ff?style=for-the-badge&logo=webgl)](https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API)
 [![Standard](https://img.shields.io/badge/Norma-ANSI%2FTIA--942%20Tier%20III-ffd700?style=for-the-badge)](https://tiaonline.org/)
 [![Security](https://img.shields.io/badge/Seguridad-ISO%2027001%20%2F%20NFPA%2075-ef4444?style=for-the-badge)](https://www.iso.org/isoiec-27001-information-security.html)
-[![Institution](https://img.shields.io/badge/Institución-SENATI%20%2F%20APSTI%20VI-0284c7?style=for-the-badge)](https://www.senati.edu.pe/)
+[![Institution](https://img.shields.io/badge/Institución-IESTP%20Hermanos%20C%C3%A1rcamo%20Paita-0284c7?style=for-the-badge)](https://github.com/GMPH2007)
 [![GitHub Pages](https://img.shields.io/badge/Live%20Demo-GitHub%20Pages-00e676?style=for-the-badge&logo=github)](https://gmph2007.github.io/datacenter-3d-sector-productivo-peru-2026/)
 
 ---
@@ -41,7 +41,7 @@
 ![Videowall 8K](screenshots/snap_videowall_no_moire.png)
 
 ### 3. Técnico Autónomo de Inspección con Escáner LiDAR 3D
-> Avatar técnico modelado al detalle con uniforme oficial SENATI, chaleco reflectivo Clase 2, casco industrial con linterna LED, arnés táctico y haz de barrido volumétrico LiDAR con retícula de telemetría AR flotante.
+> Avatar técnico modelado al detalle con uniforme oficial IESTP Hermanos Cárcamo, chaleco reflectivo Clase 2, casco industrial con linterna LED, arnés táctico y haz de barrido volumétrico LiDAR con retícula de telemetría AR flotante.
 
 ![Técnico Escaneando Racks](screenshots/snap_gerson_scanning_active.png)
 ![Detalle del Técnico](screenshots/snap_gerson_character_front.png)
@@ -148,8 +148,13 @@ El gemelo digital cuenta con un simulador de contingencias en tiempo real median
 
 ## 👥 CRÉDITOS & AGRADECIMIENTOS
 
-* **Líder de Proyecto:** Gerson Misael Pintado Huamán — *Líder técnico, diseño 3D y programación WebGL*
-* **Equipo de Trabajo:** Grupo 01 — *APSTI VI 2026*
+* **Equipo de Desarrollo (Estudiantes Grupo 01 - APSTI VI):**
+  1. **Pizarro Samame Oscar Eliseo** — *Especialista en Servidores, Rigging y Slots 42U*
+  2. **Pintado Huamana Gerson Misael** — *Líder Técnico de Proyecto, Modelado 3D & Programación WebGL*
+  3. **Clavijo Pinzon Mariana Juliet** — *Gestora de Problemática Real, Calidad & Métricas*
+  4. **Aguilar Flores Pedro Miguel** — *Especialista en Climatización ASHRAE & Automatización PIR*
+  5. **Lopez Garay Manuel Danilo** — *Analista de Usabilidad, Beneficios & Sustentación*
 * **Docente Asesor:** Prof. Javier Eduardo Jaramillo Atoche
-* **Institución:** Servicio Nacional de Adiestramiento en Trabajo Industrial (SENATI)
+* **Institución:** Instituto de Educación Superior Tecnológico Público Hermanos Cárcamo - Paita
+* **Sede & Año:** Paita – Perú, 2026
 * **Licencia:** MIT License (Código abierto para fines educativos y profesionales).
