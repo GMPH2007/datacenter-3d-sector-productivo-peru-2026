@@ -2158,6 +2158,37 @@
 
         // MODO CCTV ROBÓTICO PTZ EN TIEMPO REAL (POV)
         let isCCTVMode = false;
+
+        // Control Interactivo PTZ 360° con ratón o toques en modo CCTV
+        let cctvManualPan = 0;
+        let cctvManualTilt = 0;
+        let isCctvDragging = false;
+        let cctvDragStartX = 0, cctvDragStartY = 0;
+        let cctvLastInteractionTime = 0;
+
+        window.addEventListener('mousedown', (e) => {
+            if (isCCTVMode && e.button === 0) {
+                isCctvDragging = true;
+                cctvDragStartX = e.clientX;
+                cctvDragStartY = e.clientY;
+                cctvLastInteractionTime = performance.now();
+            }
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (isCCTVMode && isCctvDragging) {
+                const dx = e.clientX - cctvDragStartX;
+                const dy = e.clientY - cctvDragStartY;
+                cctvDragStartX = e.clientX;
+                cctvDragStartY = e.clientY;
+                cctvManualPan += dx * 0.0035;
+                cctvManualTilt = Math.max(-0.65, Math.min(0.35, cctvManualTilt + dy * 0.0025));
+                cctvLastInteractionTime = performance.now();
+            }
+        });
+
+        window.addEventListener('mouseup', () => { isCctvDragging = false; });
+
         let activeCCTVIndex = 0;
         let savedCamPos = new THREE.Vector3(0, 3.8, 14.5);
         let savedCamTarget = new THREE.Vector3(0, 1.4, 0);
@@ -3623,9 +3654,30 @@
             hair.position.y = 0.05;
             headGroup.add(hair);
 
+            // Ojos expresivos y cejas técnicas
+            [-0.045, 0.045].forEach(ex => {
+                const eye = new THREE.Mesh(new THREE.BoxGeometry(0.026, 0.018, 0.01), new THREE.MeshBasicMaterial({ color: 0x111827 }));
+                eye.position.set(ex, 0.02, 0.092);
+                headGroup.add(eye);
+
+                const brow = new THREE.Mesh(new THREE.BoxGeometry(0.038, 0.012, 0.01), hairMat);
+                brow.position.set(ex, 0.045, 0.093);
+                headGroup.add(brow);
+            });
+
+            // Barba recortada / goatee profesional de ingeniero
+            const goatee = new THREE.Mesh(new THREE.BoxGeometry(0.075, 0.045, 0.01), hairMat);
+            goatee.position.set(0, -0.072, 0.092);
+            headGroup.add(goatee);
+
+            // Lanyard institucional IESTP Hermanos Cárcamo en el cuello
+            const lanyard = new THREE.Mesh(new THREE.CylinderGeometry(0.065, 0.075, 0.025, 12, 1, true), new THREE.MeshBasicMaterial({ color: 0x0284c7 }));
+            lanyard.position.y = -0.075;
+            headGroup.add(lanyard);
+
             // Gafas de protección transparentes con montura técnica
             const visor = new THREE.Mesh(new THREE.BoxGeometry(0.19, 0.045, 0.04), visorMat);
-            visor.position.set(0, 0.015, 0.08);
+            visor.position.set(0, 0.018, 0.085);
             headGroup.add(visor);
 
             // Casco de seguridad industrial tipo MSA con visera frontal y cresta de impacto
@@ -3753,8 +3805,18 @@
                 });
             });
 
-            // Pantalla táctil activa con gráficos de diagnóstico en vivo
-            const tabletScreen = new THREE.Mesh(new THREE.PlaneGeometry(0.28, 0.18), new THREE.MeshBasicMaterial({ color: 0x0284c7 }));
+            // Pantalla táctil activa con telemetría animada en tiempo real
+            const tabletCanvas = document.createElement('canvas');
+            tabletCanvas.width = 256; tabletCanvas.height = 160;
+            const tabletCtx = tabletCanvas.getContext('2d');
+            window.techTabletCtx = tabletCtx;
+            window.techTabletCanvas = tabletCanvas;
+            const tabletTex = new THREE.CanvasTexture(tabletCanvas);
+            tabletTex.minFilter = THREE.LinearFilter;
+            window.techTabletTex = tabletTex;
+
+            const tabletScreenMat = new THREE.MeshBasicMaterial({ map: tabletTex });
+            const tabletScreen = new THREE.Mesh(new THREE.PlaneGeometry(0.28, 0.18), tabletScreenMat);
             tabletScreen.position.z = 0.014;
             techDiagnosticTablet.add(tabletScreen);
 
@@ -3969,24 +4031,55 @@
             facadeText.position.set(0, 4.5, 0.42);
             portalGroup.add(facadeText);
 
-            // MURO CORTINA ACRISTALADO DEL LOBBY (PANEL DE VIDRIO TEMPLADO PANORÁMICO)
-            const lobbyGlassGeo = new THREE.BoxGeometry(7.6, 4.0, 0.12);
-            const lobbyGlassMat = new THREE.MeshStandardMaterial({ color: 0x0284c7, transparent: true, opacity: 0.45, roughness: 0.1, metalness: 0.85 });
-            const lobbyGlass = new THREE.Mesh(lobbyGlassGeo, lobbyGlassMat);
-            lobbyGlass.position.set(0, 2.0, -0.15);
-            portalGroup.add(lobbyGlass);
+            // MURO CORTINA ACRISTALADO DEL LOBBY CON VANO CENTRAL 100% DESPEJADO PARA ACCESO TIER III
+            const lobbyGlassMat = new THREE.MeshStandardMaterial({ color: 0x0284c7, transparent: true, opacity: 0.40, roughness: 0.1, metalness: 0.85 });
+            const aluMullionMat = new THREE.MeshStandardMaterial({ color: 0x090d16, metalness: 0.9, roughness: 0.3 });
 
-            // Perfiles y montantes de aluminio anodizado negro
-            [-2.5, 0, 2.5].forEach(mx => {
-                const mullion = new THREE.Mesh(new THREE.BoxGeometry(0.08, 4.0, 0.18), new THREE.MeshStandardMaterial({ color: 0x090d16, metalness: 0.9 }));
-                mullion.position.set(mx, 2.0, -0.12);
-                portalGroup.add(mullion);
+            // 1. Paneles laterales fijos de vidrio templado a izquierda y derecha del vano
+            [-2.85, 2.85].forEach(gx => {
+                const sideGlass = new THREE.Mesh(new THREE.BoxGeometry(2.30, 4.0, 0.10), lobbyGlassMat);
+                sideGlass.position.set(gx, 2.0, -0.15);
+                portalGroup.add(sideGlass);
+
+                // Perfil intermedio vertical lateral
+                const sideMullion = new THREE.Mesh(new THREE.BoxGeometry(0.08, 4.0, 0.16), aluMullionMat);
+                sideMullion.position.set(gx, 2.0, -0.12);
+                portalGroup.add(sideMullion);
+
+                // Travesaño horizontal lateral a media altura
+                const sideTransom = new THREE.Mesh(new THREE.BoxGeometry(2.30, 0.08, 0.16), aluMullionMat);
+                sideTransom.position.set(gx, 2.0, -0.12);
+                portalGroup.add(sideTransom);
             });
-            [2.0, 3.9].forEach(ty => {
-                const transom = new THREE.Mesh(new THREE.BoxGeometry(7.6, 0.08, 0.18), new THREE.MeshStandardMaterial({ color: 0x090d16, metalness: 0.9 }));
-                transom.position.set(0, ty, -0.12);
-                portalGroup.add(transom);
+
+            // 2. Montantes verticales principales de jambas del vano central (X = -1.65m y +1.65m)
+            [-1.65, 1.65].forEach(jx => {
+                const jambMullion = new THREE.Mesh(new THREE.BoxGeometry(0.10, 4.0, 0.20), aluMullionMat);
+                jambMullion.position.set(jx, 2.0, -0.12);
+                portalGroup.add(jambMullion);
             });
+
+            // 3. Montantes extremos contra las columnas del pórtico (X = -4.0m y +4.0m)
+            [-4.0, 4.0].forEach(cx => {
+                const colMullion = new THREE.Mesh(new THREE.BoxGeometry(0.08, 4.0, 0.18), aluMullionMat);
+                colMullion.position.set(cx, 2.0, -0.12);
+                portalGroup.add(colMullion);
+            });
+
+            // 4. Dintel travesaño superior del vano a Y = 2.75m (Delimita el vano libre de paso de 3.2m ancho x 2.75m alto)
+            const doorHeaderTransom = new THREE.Mesh(new THREE.BoxGeometry(3.30, 0.10, 0.20), aluMullionMat);
+            doorHeaderTransom.position.set(0, 2.75, -0.12);
+            portalGroup.add(doorHeaderTransom);
+
+            // 5. Vidrio fijo superior (Tragaluz sobre la puerta desde Y = 2.8m hasta 4.0m)
+            const overDoorGlass = new THREE.Mesh(new THREE.BoxGeometry(3.20, 1.20, 0.10), lobbyGlassMat);
+            overDoorGlass.position.set(0, 3.40, -0.15);
+            portalGroup.add(overDoorGlass);
+
+            // Remate superior del muro cortina
+            const topHeaderTransom = new THREE.Mesh(new THREE.BoxGeometry(7.6, 0.08, 0.18), aluMullionMat);
+            topHeaderTransom.position.set(0, 3.96, -0.12);
+            portalGroup.add(topHeaderTransom);
 
             // Vano Central de Acceso Despejado que expone la Puerta Automática Real con Sensores PIR
             // (Se eliminó la hoja duplicada para que exista una única puerta funcional perfecta)
@@ -4175,15 +4268,15 @@
                         treeGroup.add(nut);
                     }
 
-                    // 16 Grandes Frondas Reales en 3 estratos para frondosidad 360° total
+                    // 16 Grandes Frondas Reales Continuas 3D Arquitectónicas (Cero piezas sueltas)
                     const fMatDark = new THREE.MeshStandardMaterial({ color: 0x14532d, roughness: 0.65, side: THREE.DoubleSide });
-                    const fMatRich = new THREE.MeshStandardMaterial({ color: 0x166534, roughness: 0.6, side: THREE.DoubleSide });
+                    const fMatRich = new THREE.MeshStandardMaterial({ color: 0x166534, roughness: 0.60, side: THREE.DoubleSide });
                     const fMatBright = new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.55, side: THREE.DoubleSide });
 
                     const palmTiers = [
-                        { count: 5, length: 2.8, droop: 0.9, mat: fMatBright, yOff: 0.85 },
-                        { count: 6, length: 3.4, droop: 1.4, mat: fMatRich, yOff: 0.75 },
-                        { count: 5, length: 3.8, droop: 2.0, mat: fMatDark, yOff: 0.65 }
+                        { count: 5, length: 3.0, droop: 0.85, widthScale: 0.85, mat: fMatBright, yOff: 0.85 },
+                        { count: 6, length: 3.5, droop: 1.35, widthScale: 1.00, mat: fMatRich, yOff: 0.75 },
+                        { count: 5, length: 4.0, droop: 1.95, widthScale: 1.15, mat: fMatDark, yOff: 0.65 }
                     ];
 
                     palmTiers.forEach((tier, tIdx) => {
@@ -4193,40 +4286,60 @@
                             frondGroup.position.set(0.10, currY + tier.yOff, 0.08);
                             frondGroup.rotation.y = angle;
 
-                            const leafletsCount = 8;
-                            for (let i = 1; i <= leafletsCount; i++) {
-                                const t = i / leafletsCount;
+                            // Geometría continua y sin fisuras para la palma completa
+                            const segs = 10;
+                            const geom = new THREE.BufferGeometry();
+                            const positions = [];
+                            const indices = [];
+
+                            for (let i = 0; i <= segs; i++) {
+                                const t = i / segs;
                                 const dist = t * tier.length;
-                                const yPos = Math.sin(t * Math.PI * 0.85) * 0.45 - (t * t * tier.droop);
+                                // Curva parabólica natural con ligera elevación en el tercio inicial
+                                const yPos = Math.sin(t * Math.PI * 0.85) * 0.42 - (t * t * tier.droop);
                                 const zPos = dist;
 
-                                // Raquis central
-                                const spine = new THREE.Mesh(
-                                    new THREE.CylinderGeometry(0.02, 0.035, tier.length / leafletsCount, 6),
-                                    new THREE.MeshStandardMaterial({ color: 0x1b4332, roughness: 0.8 })
-                                );
-                                spine.position.set(0, yPos, zPos);
-                                spine.rotation.x = Math.PI / 2 + (t * 0.45);
-                                frondGroup.add(spine);
+                                // Ancho contorneado: inicia estrecho en la base, ensancha al centro y termina en punta afilada
+                                const w = (Math.sin(t * Math.PI) * 0.65 + (1 - t) * 0.12) * tier.widthScale;
+                                const vFold = w * 0.22; // Pliegue en V para rigidez y volumen tridimensional
 
-                                // Folíolos en V chevron
-                                const leafW = Math.sin(t * Math.PI) * 0.75 + 0.22;
-                                const leafL = 0.62;
-
-                                const lLeaf = new THREE.Mesh(new THREE.PlaneGeometry(leafW, leafL), tier.mat);
-                                lLeaf.position.set(-leafW * 0.45, yPos, zPos);
-                                lLeaf.rotation.x = Math.PI / 2 + (t * 0.42);
-                                lLeaf.rotation.y = 0.32;
-                                lLeaf.rotation.z = 0.22;
-                                frondGroup.add(lLeaf);
-
-                                const rLeaf = new THREE.Mesh(new THREE.PlaneGeometry(leafW, leafL), tier.mat);
-                                rLeaf.position.set(leafW * 0.45, yPos, zPos);
-                                rLeaf.rotation.x = Math.PI / 2 + (t * 0.42);
-                                rLeaf.rotation.y = -0.32;
-                                rLeaf.rotation.z = -0.22;
-                                frondGroup.add(rLeaf);
+                                // Vértice 0: Ala izquierda (plegada hacia abajo)
+                                positions.push(-w, yPos - vFold, zPos);
+                                // Vértice 1: Espina central (cresta del raquis)
+                                positions.push(0, yPos, zPos);
+                                // Vértice 2: Ala derecha (plegada hacia abajo)
+                                positions.push(w, yPos - vFold, zPos);
                             }
+
+                            for (let i = 0; i < segs; i++) {
+                                const base = i * 3;
+                                const next = (i + 1) * 3;
+
+                                // Cara izquierda (quad)
+                                indices.push(base + 0, next + 0, next + 1);
+                                indices.push(base + 0, next + 1, base + 1);
+
+                                // Cara derecha (quad)
+                                indices.push(base + 1, next + 1, next + 2);
+                                indices.push(base + 1, next + 2, base + 2);
+                            }
+
+                            geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+                            geom.setIndex(indices);
+                            geom.computeVertexNormals();
+
+                            const frondMesh = new THREE.Mesh(geom, tier.mat);
+                            frondMesh.castShadow = true;
+                            frondGroup.add(frondMesh);
+
+                            // Nervadura central cilíndrica de refuerzo a lo largo de la fronda
+                            const spineGeo = new THREE.CylinderGeometry(0.018, 0.038, tier.length, 6);
+                            spineGeo.rotateX(Math.PI / 2);
+                            const spineMesh = new THREE.Mesh(spineGeo, new THREE.MeshStandardMaterial({ color: 0x1b4332, roughness: 0.8 }));
+                            spineMesh.position.set(0, -tier.droop * 0.35, tier.length * 0.5);
+                            spineMesh.rotation.x = -tier.droop * 0.22;
+                            frondGroup.add(spineMesh);
+
                             treeGroup.add(frondGroup);
                         }
                     });
@@ -5472,43 +5585,8 @@
             exteriorPlaza.receiveShadow = true;
             scene.add(exteriorPlaza);
 
-            // Franjas de precaución perimetral amarilla/negra en el acceso exterior
-            const hazardGeo = new THREE.PlaneGeometry(12.0, 0.25);
-            hazardGeo.rotateX(-Math.PI / 2);
-            const hazardMat = new THREE.MeshBasicMaterial({ color: 0xf59e0b });
-            const exteriorHazard = new THREE.Mesh(hazardGeo, hazardMat);
-            exteriorHazard.position.set(0, 0.005, 16.85);
-            scene.add(exteriorHazard);
-
-            // Bolardos de seguridad exterior de acero inoxidable en la línea de aproximación
-            const bollardGeo = new THREE.CylinderGeometry(0.08, 0.08, 0.95, 16);
-            const bollardMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.85, roughness: 0.25 });
-            [-4.2, -2.0, 2.0, 4.2].forEach(bx => {
-                const bollard = new THREE.Mesh(bollardGeo, bollardMat);
-                bollard.position.set(bx, 0.475, 16.5);
-                scene.add(bollard);
-
-                // Banda reflectante amarilla
-                const bStripe = new THREE.Mesh(new THREE.CylinderGeometry(0.082, 0.082, 0.08, 16), new THREE.MeshBasicMaterial({ color: 0xfbbf24 }));
-                bStripe.position.set(bx, 0.75, 16.5);
-                scene.add(bStripe);
-            });
-
-            // Marquesina / Voladizo exterior sobre la entrada principal (A Y = 3.6m)
-            const canopyGeo = new THREE.BoxGeometry(4.4, 0.12, 1.8);
-            const canopyMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, metalness: 0.7, roughness: 0.3 });
-            const canopy = new THREE.Mesh(canopyGeo, canopyMat);
-            canopy.position.set(0, 3.6, 13.75);
-            scene.add(canopy);
-
-// Letrero exterior unificado en el pórtico arquitectónico principal
-
-            // Focos de iluminación exterior empotrados en la marquesina
-            [-1.2, 1.2].forEach(cx => {
-                const cLight = new THREE.PointLight(0xe0f2fe, 0.65, 4.5);
-                cLight.position.set(cx, 3.5, 13.75);
-                scene.add(cLight);
-            });
+            // Plaza exterior y acceso limpio unificado con el campus urbano exterior
+            // (Se eliminaron marquesina duplicada y bolardos redundantes para mantener el paseo central 100% despejado)
 
             // ESCALERILLAS INDUSTRIALES DE CABLEADO SUSPENDIDAS A 3.6m DE ALTURA (Bandejas de fibra y cobre)
 
@@ -9735,7 +9813,20 @@
             // Patrullaje activo robótico de las 4 cámaras CCTV PTZ con rotación y cono de visión
             cctvCameras.forEach(cam => {
                 // Movimiento oscilatorio de patrullaje horizontal suave
-                cam.gimbal.rotation.y = cam.baseAngle + Math.sin(now * 0.0012 + cam.offset) * 0.65;
+                if (isCCTVMode && cam === cctvCameras[activeCCTVIndex]) {
+                    // Si el operador mueve el cursor, el gimbal obedece con paneo libre 360°
+                    const idleTime = (performance.now() - cctvLastInteractionTime) * 0.001;
+                    if (idleTime > 6.0) {
+                        // Retorno suave al patrullaje automático tras inactividad
+                        cctvManualPan *= 0.98;
+                        cctvManualTilt *= 0.98;
+                    }
+                    cam.gimbal.rotation.y = cam.baseAngle + cctvManualPan + Math.sin(now * 0.0012 + cam.offset) * 0.45;
+                    cam.body.rotation.x = 0.55 - cctvManualTilt;
+                } else {
+                    cam.gimbal.rotation.y = cam.baseAngle + Math.sin(now * 0.0012 + cam.offset) * 0.65;
+                    cam.body.rotation.x = 0.55;
+                }
 
                 // En modo emergencia o corte de luz, el cono se vuelve rojo y la luz parpadea a alta velocidad
                 const isEmergency = isEmergencyLighting || activeFaults.thermal;
@@ -10123,6 +10214,56 @@
                             window.techHoloTex.needsUpdate = true;
                         }
 
+                        // Actualización dinámica de la pantalla de la tablet del Ing. Gerson Pintado
+                        if (window.techTabletCtx && window.techTabletTex) {
+                            const tc = window.techTabletCtx;
+                            tc.fillStyle = '#050c1a';
+                            tc.fillRect(0, 0, 256, 160);
+
+                            // Borde y encabezado
+                            tc.strokeStyle = '#00e5ff';
+                            tc.lineWidth = 2;
+                            tc.strokeRect(2, 2, 252, 156);
+
+                            tc.fillStyle = '#00e5ff';
+                            tc.font = 'bold 12px "Orbitron", monospace';
+                            tc.fillText('DIAGNÓSTICO TIER III - PAITA', 12, 18);
+
+                            tc.fillStyle = '#94a3b8';
+                            tc.font = '10px "JetBrains Mono", monospace';
+                            tc.fillText('OPERADOR: ING. GERSON PINTADO', 12, 32);
+
+                            // Osciloscopio / Forma de onda en vivo
+                            tc.strokeStyle = '#00e676';
+                            tc.lineWidth = 1.5;
+                            tc.beginPath();
+                            for (let px = 0; px < 232; px += 4) {
+                                const waveY = 62 + Math.sin((px * 0.08) + (now * 0.008)) * 14 + Math.cos((px * 0.14) - (now * 0.005)) * 6;
+                                if (px === 0) tc.moveTo(12 + px, waveY);
+                                else tc.lineTo(12 + px, waveY);
+                            }
+                            tc.stroke();
+
+                            // Métricas digitales
+                            tc.fillStyle = '#38bdf8';
+                            tc.font = 'bold 11px "JetBrains Mono", monospace';
+                            tc.fillText('TEMP: 19.8°C  |  PUE: 1.22', 12, 102);
+                            tc.fillText('CARGA TI: 68.4 kW [2N OK]', 12, 118);
+
+                            // Barra de progreso de escaneo
+                            const scanProg = ((now * 0.0008) % 1.0);
+                            tc.fillStyle = '#1e293b';
+                            tc.fillRect(12, 132, 232, 14);
+                            tc.fillStyle = '#00e676';
+                            tc.fillRect(12, 132, 232 * scanProg, 14);
+
+                            tc.fillStyle = '#ffffff';
+                            tc.font = 'bold 9px "Orbitron", monospace';
+                            tc.fillText(`ESCANEO ACTIVO ${(scanProg * 100).toFixed(0)}%`, 85, 143);
+
+                            window.techTabletTex.needsUpdate = true;
+                        }
+
                         // 5. Jaula wireframe holográfica 3D sobre el equipo
                         if (window.rackHoloCage && targetLeg.lookAt) {
                             window.rackHoloCage.visible = true;
@@ -10158,12 +10299,14 @@
                 // MODO SEGUIR TÉCNICO EN TERCERA PERSONA (CÁMARA DE SEGUIMIENTO SUAVE)
                 if (isFollowTechMode && !isCCTVMode && !isTourRunning) {
                     const techWorldPos = technicianGroup.position.clone();
-                    // Offset de cámara en tercera persona detrás del hombro
-                    const backDir = new THREE.Vector3(0, 0, -1).applyAxisAngle(new THREE.Vector3(0, 1, 0), technicianGroup.rotation.y);
-                    const techCamTarget = techWorldPos.clone().add(backDir.multiplyScalar(2.4)).add(new THREE.Vector3(0.6, 1.75, 0));
-                    const techLookTarget = techWorldPos.clone().add(new THREE.Vector3(0, 1.45, 0));
+                    // Cámara en tercera persona sobre el hombro derecho orientada con la rotación real del técnico
+                    const heading = technicianGroup.rotation.y;
+                    // Posicionamiento de cámara over-the-shoulder cinemático que muestra claramente al técnico y el entorno
+                    const offsetBack = new THREE.Vector3(0.50, 1.85, -2.60).applyAxisAngle(new THREE.Vector3(0, 1, 0), heading);
+                    const techCamTarget = techWorldPos.clone().add(offsetBack);
+                    const techLookTarget = techWorldPos.clone().add(new THREE.Vector3(0, 1.25, 0)).add(new THREE.Vector3(0, 0, 0.8).applyAxisAngle(new THREE.Vector3(0, 1, 0), heading));
 
-                    camera.position.lerp(techCamTarget, 0.08);
+                    camera.position.lerp(techCamTarget, 0.07);
                     currentTargetPos.lerp(techLookTarget, 0.08);
                     camera.lookAt(currentTargetPos);
                     cameraTargetEmpty.position.copy(currentTargetPos);
